@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel de Fiscalizadoras</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; padding: 20px; }
+        .panel { background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
+        .instrucciones { background-color: #e7f3fe; border-left: 6px solid #2196F3; padding: 15px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="panel">
+        <h1>Bienvenida al Panel de Control</h1>
+        <div class="instrucciones">
+            <h2>Instrucciones para hoy:</h2>
+            <p>Aquí aparecerán las instrucciones que envíe el administrador.</p>
+        </div>
+    </div>
+</body>
+</html>
