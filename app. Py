@@ -1,0 +1,71 @@
+import streamlit as st
+import pandas as pd
+import urllib.parse
+from datetime import datetime
+import os
+
+# --- 1. EL CEREBRO DE LA LEY 21.442 ---
+CEREBRO_LEGAL = {
+    "Sello Verde (Gas)": "Inspección obligatoria cada 2 años. El administrador debe presentar el certificado TC6.",
+    "Seguros Incendio": "Obligación de asegurar bienes comunes. El Comité debe verificar pólizas vigentes (Art. 36).",
+    "Gastos Comunes": "Procedimiento de cobranza y corte de suministro eléctrico tras 3 meses de mora.",
+    "Plan de Emergencia": "Actualización anual obligatoria de vías de evacuación y capacitación de personal."
+}
+
+# --- 2. GESTIÓN DE DATOS (Trazabilidad) ---
+DB_FILE = "trazabilidad_maestra.csv"
+if not os.path.exists(DB_FILE):
+    df_init = pd.DataFrame(columns=["Fecha", "Ejecutivo", "Copropiedad", "Tema", "Estado", "Prox_Paso"])
+    df_init.to_csv(DB_FILE, index=False)
+
+# --- 3. INTERFAZ PARA TABLET ---
+st.set_page_config(page_title="BYCOPROPIEDAD - Central", layout="wide")
+st.title("🧠 BYCOPROPIEDAD: Gestión de Ley 21.442")
+
+with st.sidebar:
+    st.header("👤 Configuración")
+    ejecutivo = st.selectbox("Ejecutivo en Terreno:", ["Ejecutivo 1", "Ejecutivo 2", "Socio Central"])
+    telefono = st.text_input("WhatsApp Destino (ej: 56912345678):")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.subheader("📋 Datos de la Visita")
+    copropiedad = st.text_input("Nombre de la Copropiedad:")
+    tema = st.selectbox("Tema a Tratar:", list(CEREBRO_LEGAL.keys()))
+    estado = st.radio("Estado del Trámite:", ["Pendiente", "En Proceso", "Finalizado"])
+    prox_paso = st.text_area("¿Cuál es el próximo paso? (Continuidad):")
+
+with col2:
+    st.subheader("📲 Vista Previa del Mensaje")
+    info_tecnica = CEREBRO_LEGAL[tema]
+    
+    mensaje_final = (
+        f"*BYCOPROPIEDAD - REGISTRO LEY 21.442*\n\n"
+        f"🏢 *COPROPIEDAD:* {copropiedad}\n"
+        f"👤 *EJECUTIVO:* {ejecutivo}\n"
+        f"📚 *TEMA:* {tema}\n"
+        f"✅ *AVANCE:* {info_tecnica}\n"
+        f"⏳ *ESTADO:* {estado}\n"
+        f"⏭️ *PRÓXIMO PASO:* {prox_paso}\n"
+        f"--------------------------\n"
+        f"📅 {datetime.now().strftime('%d/%m/%Y %H:%M')}"
+    )
+    
+    st.info(mensaje_final)
+    link_wa = f"https://wa.me/{telefono}?text={urllib.parse.quote(mensaje_final)}"
+    
+    if st.button("🚀 REGISTRAR Y ENVIAR"):
+        if copropiedad and telefono:
+            nueva_fila = [datetime.now(), ejecutivo, copropiedad, tema, estado, prox_paso]
+            with open(DB_FILE, "a", encoding="utf-8") as f:
+                f.write(",".join([str(x) for x in nueva_fila]) + "\n")
+            st.markdown(f'''<a href="{link_wa}" target="_blank"><button style="background-color: #25D366; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer;">CONFIRMAR ENVÍO WHATSAPP</button></a>''', unsafe_all_html=True)
+            st.success("Trazabilidad guardada.")
+        else:
+            st.error("Por favor completa el nombre de la Copropiedad y el Teléfono.")
+
+st.divider()
+st.subheader("📊 Historial de Trazabilidad")
+df_historial = pd.read_csv(DB_FILE)
+st.dataframe(df_historial.tail(10))
